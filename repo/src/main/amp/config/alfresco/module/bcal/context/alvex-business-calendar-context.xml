@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE beans PUBLIC '-//SPRING//DTD BEAN//EN' 'http://www.springframework.org/dtd/spring-beans.dtd'>
+<!--suppress SpringFacetInspection -->
+<beans>
+    <bean id="businessCalendar" parent="alvex-key-value-store-aware" class="com.alvexcore.repo.bcal.BusinessCalendar">
+        <property name="businessCalendarPath" value="${alvex.bcal.path}" />
+    </bean>
+
+    <bean id="businessCalendarTaskLimitsInitializer" class="com.alvexcore.repo.bcal.TaskLimitsInitializer">
+        <property name="businessCalendar" ref="businessCalendar"/>
+    </bean>
+
+    <bean id="abstractBusinessCalendarTaskMapper" abstract="true">
+        <property name="serviceRegistry" ref="ServiceRegistry" />
+    </bean>
+
+    <bean id="abstractBusinessCalendarDefaultLimitsProvider" abstract="true">
+        <property name="serviceRegistry" ref="ServiceRegistry" />
+        <property name="taskLimitsInitializer" ref="businessCalendarTaskLimitsInitializer" />
+    </bean>
+
+    <bean id="abstractBusinessCalendarTaskDueDateSetter" class="com.alvexcore.repo.bcal.TaskDueDateSetter" parent="alvex-activiti-connector-activiti-listener" abstract="true">
+        <property name="businessCalendar" ref="businessCalendar"/>
+    </bean>
+
+    <bean id='webscript.com.alvexcore.duedates.limits.get' class='com.alvexcore.repo.bcal.webscript.ListLimits'>
+        <property name="serviceRegistry" ref="ServiceRegistry" />
+        <property name="businessCalendar" ref="businessCalendar"/>
+    </bean>
+
+    <bean id='webscript.com.alvexcore.duedates.limit.put' class='com.alvexcore.repo.bcal.webscript.SetLimit'>
+        <property name="businessCalendar" ref="businessCalendar"/>
+    </bean>
+
+    <bean id="alvex-bcal" parent="alvex-extension"
+          class="com.alvexcore.repo.BusinessCalendarExtension">
+    </bean>
+
+</beans>

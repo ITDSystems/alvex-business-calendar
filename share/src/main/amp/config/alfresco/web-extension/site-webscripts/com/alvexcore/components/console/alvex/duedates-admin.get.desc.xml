@@ -1,0 +1,7 @@
+<webscript>
+    <shortname>Alvex: Admin Component for configuring task due dates</shortname>
+    <description>Alvex: Admin Component for configuring task due dates</description>
+    <url>/components/admin/alvex/duedates</url>
+    <family>admin-console</family>
+    <authentication>admin</authentication>
+</webscript>

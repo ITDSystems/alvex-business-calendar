@@ -1,0 +1,8 @@
+<webscript>
+  <shortname>List task time limits</shortname>
+  <description>Lists all task limits that were set</description>
+  <url>/api/alvex/duedates/limits</url>
+  <authentication>user</authentication>
+  <format default='json'>any</format>
+  <family>Business calendar API</family>
+</webscript>
