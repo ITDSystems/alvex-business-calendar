@@ -7,7 +7,7 @@ var widgets = [
     }
 ];
 
-var limits = eval('(' + remote.connect('alfresco').get('/api/alvex/duedates/limits') + ')');
+var limits = eval('(' + remote.connect('alfresco').get('/api/alvex/duedates/limits') + ')').limits;
 
 for (var i in limits) {
     var process = limits[i];

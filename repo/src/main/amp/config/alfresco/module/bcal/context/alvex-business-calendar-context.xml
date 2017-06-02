@@ -2,38 +2,56 @@
 <!DOCTYPE beans PUBLIC '-//SPRING//DTD BEAN//EN' 'http://www.springframework.org/dtd/spring-beans.dtd'>
 <!--suppress SpringFacetInspection -->
 <beans>
-    <bean id="businessCalendar" parent="alvex-key-value-store-aware" class="com.alvexcore.repo.bcal.BusinessCalendar">
+    <bean id="alvexBusinessCalendar" parent="alvex-key-value-store-aware" class="com.alvexcore.repo.bcal.BusinessCalendar"/>
+
+    <bean id="alvexBusinessCalendarAbstractHandler" abstract="true">
+        <property name="serviceRegistry" ref="ServiceRegistry"/>
+        <property name="repositoryService" ref="activitiRepositoryService"/>
+        <property name="businessCalendar" ref="alvexBusinessCalendar"/>
+        <property name="dueDateSetter" ref="alvexBusinessCalendarDueDateSetter" />
+    </bean>
+
+    <!-- This is an example of how custom handler may be configured
+
+
+    <bean id="businessCalendarCustomHandler" class="com.alvexcore.repo.bcal.CustomBusinessCalendarHandler" parent="alvexBusinessCalendarAbstractHandler">
         <property name="businessCalendarPath" value="${alvex.bcal.path}" />
+        <property name="matches">
+            <list>
+                <value>task-create:.*</value>
+            </list>
+        </property>
     </bean>
 
-    <bean id="businessCalendarTaskLimitsInitializer" class="com.alvexcore.repo.bcal.TaskLimitsInitializer">
-        <property name="businessCalendar" ref="businessCalendar"/>
+    -->
+    
+    <bean id="alvexBusinessCalendarDefaultHandler" class="com.alvexcore.repo.bcal.DefaultBusinessCalendarHandler" parent="alvexBusinessCalendarAbstractHandler">
+        <property name="businessCalendarPath" value="${alvex.bcal.path}" />
+        <property name="matches">
+            <list>
+                <value>task-create:.*</value>
+            </list>
+        </property>
     </bean>
 
-    <bean id="abstractBusinessCalendarTaskMapper" abstract="true">
-        <property name="serviceRegistry" ref="ServiceRegistry" />
-    </bean>
-
-    <bean id="abstractBusinessCalendarDefaultLimitsProvider" abstract="true">
-        <property name="serviceRegistry" ref="ServiceRegistry" />
-        <property name="taskLimitsInitializer" ref="businessCalendarTaskLimitsInitializer" />
-    </bean>
-
-    <bean id="abstractBusinessCalendarTaskDueDateSetter" class="com.alvexcore.repo.bcal.TaskDueDateSetter" parent="alvex-activiti-connector-activiti-listener" abstract="true">
-        <property name="businessCalendar" ref="businessCalendar"/>
+    <bean id="alvexBusinessCalendarDueDateSetter" class="com.alvexcore.repo.bcal.TaskDueDateSetter" parent="alvex-activiti-connector-activiti-listener">
+        <property name="businessCalendar" ref="alvexBusinessCalendar"/>
+        <property name="matches">
+            <list>
+                <!-- Intentionally left empty -->
+            </list>
+        </property>
     </bean>
 
     <bean id='webscript.com.alvexcore.duedates.limits.get' class='com.alvexcore.repo.bcal.webscript.ListLimits'>
         <property name="serviceRegistry" ref="ServiceRegistry" />
-        <property name="businessCalendar" ref="businessCalendar"/>
+        <property name="businessCalendar" ref="alvexBusinessCalendar"/>
     </bean>
 
     <bean id='webscript.com.alvexcore.duedates.limit.put' class='com.alvexcore.repo.bcal.webscript.SetLimit'>
-        <property name="businessCalendar" ref="businessCalendar"/>
+        <property name="businessCalendar" ref="alvexBusinessCalendar"/>
     </bean>
 
-    <bean id="alvex-bcal" parent="alvex-extension"
-          class="com.alvexcore.repo.BusinessCalendarExtension">
-    </bean>
+    <bean id="alvex-bcal" parent="alvex-extension" class="com.alvexcore.repo.BusinessCalendarExtension"/>
 
 </beans>

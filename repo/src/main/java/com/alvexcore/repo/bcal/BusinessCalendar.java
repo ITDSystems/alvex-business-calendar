@@ -3,34 +3,32 @@ package com.alvexcore.repo.bcal;
 import com.alvexcore.repo.kvstore.KeyValueStoreAware;
 import net.objectlab.kit.datecalc.common.DefaultHolidayCalendar;
 import net.objectlab.kit.datecalc.common.HolidayCalendar;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
-import org.springframework.beans.factory.InitializingBean;
+import org.alfresco.error.AlfrescoRuntimeException;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
-public class BusinessCalendar extends KeyValueStoreAware implements InitializingBean {
+public class BusinessCalendar extends KeyValueStoreAware implements ApplicationContextAware, ApplicationListener<ContextRefreshedEvent> {
 
     public static final Integer DEFAULT_TASK_TIME_LIMIT = 2;
     public static final String MAP_NAME = "BusinessCalendar";
 
-    private static final String DEFAULT_BC_RESOURCE = "/russia-business-calendar-2019.csv";
-
     private HolidayCalendar<LocalDate> holidayCalendar;
 
-    String businessCalendarPath;
-
     private ConcurrentMap<String, Integer> limitsMap;
+    private ApplicationContext applicationContext;
+    private BusinessCalendarHandler handler;
 
-    public void setBusinessCalendarPath(String businessCalendarPath) {
-        this.businessCalendarPath = businessCalendarPath;
+    public BusinessCalendarHandler getHandler() {
+        return handler;
     }
 
     public HolidayCalendar<LocalDate> getHolidayCalendar() {
@@ -40,40 +38,6 @@ public class BusinessCalendar extends KeyValueStoreAware implements Initializing
     public Integer getTaskTimeLimit(String key) {
         return limitsMap.getOrDefault(key, DEFAULT_TASK_TIME_LIMIT);
     }
-
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        loadHolidayCalendar();
-    }
-
-    private void loadHolidayCalendar() throws IOException {
-        File file = new File(businessCalendarPath);
-        URL url = file.exists() ? file.toURI().toURL() : this.getClass().getResource(DEFAULT_BC_RESOURCE);
-        CSVParser parser = CSVParser.parse(url, StandardCharsets.UTF_8, CSVFormat.RFC4180);
-        List<CSVRecord> records = parser.getRecords();
-        Set<LocalDate> holidays = new HashSet<>();
-        LocalDate startFrom = LocalDate.now();
-        for (int i = 1; i < records.size(); i++) {
-            CSVRecord csvRecord = records.get(i);
-            Integer year = Integer.valueOf(csvRecord.get(0));
-            if (startFrom.getYear() > year)
-                continue;
-            for (int month = startFrom.getMonthValue(); month <= 12; month++) {
-                for (String holiday : csvRecord.get(month).split(",")) {
-                    holiday = holiday.trim();
-                    if (holiday.endsWith("*"))
-                        continue;
-                    Integer day = Integer.valueOf(holiday);
-                    if (month == startFrom.getMonthValue() && day < startFrom.getDayOfMonth())
-                        continue;
-                    holidays.add(LocalDate.of(year, month, day));
-                }
-            }
-        }
-        holidayCalendar = new DefaultHolidayCalendar<>();
-        holidayCalendar.setHolidays(holidays);
-    }
-
 
     public Map<String, Integer> getLimitsMap() {
         return Collections.unmodifiableMap(limitsMap);
@@ -101,5 +65,41 @@ public class BusinessCalendar extends KeyValueStoreAware implements Initializing
     @Override
     protected void onKeyValueStoreReady() {
         limitsMap = keyValueStore.getStore(MAP_NAME);
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
+    }
+
+    @Override
+    public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
+        ApplicationContext closedContext = contextRefreshedEvent.getApplicationContext();
+        if(closedContext != null && closedContext.equals(this.applicationContext)) {
+            try {
+                initialize();
+            } catch (Exception e) {
+                throw new AlfrescoRuntimeException("Failed to initialize business calendar", e);
+            }
+        }
+    }
+
+    private void initialize() throws IOException{
+        holidayCalendar = new DefaultHolidayCalendar<>();
+        holidayCalendar.setHolidays(handler.loadHolidaysList());
+
+        setDefaultLimits(handler.getDefaultLimits());
+    }
+
+    public void registerHandler(BusinessCalendarHandler handler)
+    {
+        if (this.handler == null)
+            this.handler = handler;
+        else
+            if (this.handler.getClass().equals(DefaultBusinessCalendarHandler.class))
+                this.handler = handler;
+            else
+                if (!handler.getClass().equals(DefaultBusinessCalendarHandler.class))
+                    throw new AlfrescoRuntimeException("More than one business calendar custom handler specified");
     }
 }

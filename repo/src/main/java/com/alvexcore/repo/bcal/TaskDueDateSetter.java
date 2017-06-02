@@ -15,18 +15,12 @@ public class TaskDueDateSetter extends AlvexActivitiListener implements TaskList
 
     private BusinessCalendar businessCalendar;
 
-    private TaskMapper taskMapper;
-
-    @Required
-    public void setTaskMapper(TaskMapper taskMapper) {
-        this.taskMapper = taskMapper;
-    }
-
     @Override
     public void notify(DelegateTask delegateTask) {
+        BusinessCalendarHandler handler = businessCalendar.getHandler();
         LocalDateCalculator calculator = new LocalDateCalculator(null, LocalDate.now(), businessCalendar.getHolidayCalendar(), new LocalDateForwardHandler());
 
-        Integer timeLimit = businessCalendar.getTaskTimeLimit(taskMapper.getTaskKeyInfo(delegateTask).toString());
+        Integer timeLimit = businessCalendar.getTaskTimeLimit(handler.getTaskKeyInfo(delegateTask).toString());
         if (timeLimit < 0)
             return;
 
@@ -40,4 +34,6 @@ public class TaskDueDateSetter extends AlvexActivitiListener implements TaskList
     public void setBusinessCalendar(BusinessCalendar businessCalendar) {
         this.businessCalendar = businessCalendar;
     }
+
+
 }
