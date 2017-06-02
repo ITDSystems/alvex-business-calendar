@@ -1,15 +1,13 @@
 package com.alvexcore.repo.bcal;
 
 import org.activiti.engine.delegate.DelegateTask;
-import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
 import org.springframework.beans.factory.annotation.Required;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -46,7 +44,6 @@ public class DefaultBusinessCalendarHandler extends AbstractBusinessCalendarHand
         }
 
         return limitsMap;
-
     }
 
     @Override
@@ -58,17 +55,23 @@ public class DefaultBusinessCalendarHandler extends AbstractBusinessCalendarHand
 
     public static Set<LocalDate> loadHolidaysListFromCsv(URL businessCalendarPath) throws IOException
     {
-        CSVParser parser = CSVParser.parse(businessCalendarPath, StandardCharsets.UTF_8, CSVFormat.RFC4180);
-        List<CSVRecord> records = parser.getRecords();
+        CSVParser parser = new CSVParser(new InputStreamReader(businessCalendarPath.openStream()));
+
         Set<LocalDate> holidays = new HashSet<>();
         LocalDate startFrom = LocalDate.now();
-        for (int i = 1; i < records.size(); i++) {
-            CSVRecord csvRecord = records.get(i);
-            Integer year = Integer.valueOf(csvRecord.get(0));
+
+        boolean skip = true;
+        for (String[] line: parser.getAllValues()) {
+            if (skip)
+            {
+                skip = false;
+                continue;
+            }
+            Integer year = Integer.valueOf(line[0]);
             if (startFrom.getYear() > year)
                 continue;
             for (int month = startFrom.getMonthValue(); month <= 12; month++) {
-                for (String holiday : csvRecord.get(month).split(",")) {
+                for (String holiday : line[month].split(",")) {
                     holiday = holiday.trim();
                     if (holiday.endsWith("*"))
                         continue;
