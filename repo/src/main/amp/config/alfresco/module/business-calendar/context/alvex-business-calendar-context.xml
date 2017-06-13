@@ -18,7 +18,8 @@
         <property name="businessCalendarPath" value="${alvex.bcal.path}" />
         <property name="matches">
             <list>
-                <value>task-create:.*</value>
+                <value>workflow1</value>
+                <value>workflow2</value>
             </list>
         </property>
     </bean>
@@ -29,7 +30,7 @@
         <property name="businessCalendarPath" value="${alvex.bcal.path}" />
         <property name="matches">
             <list>
-                <value>task-create:.*</value>
+                <value>.*</value>
             </list>
         </property>
     </bean>

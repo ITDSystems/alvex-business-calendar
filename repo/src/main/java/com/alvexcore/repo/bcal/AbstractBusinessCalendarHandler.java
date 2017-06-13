@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public abstract class AbstractBusinessCalendarHandler implements BusinessCalendarHandler, InitializingBean{
 
@@ -79,7 +80,7 @@ public abstract class AbstractBusinessCalendarHandler implements BusinessCalenda
     @Override
     public void afterPropertiesSet() throws Exception {
         if (this == businessCalendar.getHandler())
-            dueDateSetter.setMatches(matches);
+            dueDateSetter.setMatches(matches.stream().map(s -> "task-create:.*@" + s).collect(Collectors.toList()));
     }
 
     public KeyInfo getTaskKeyInfo(String procecessKey, String formKey)
