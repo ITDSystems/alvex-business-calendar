@@ -52,7 +52,7 @@ public class KeyInfo
 
     public static String getFilteredProcessKey(String processKey)
     {
-        return processKey.replaceAll("\\W", "_");
+        return processKey;
     }
 
     public static String getFilteredTaskKey(String taskKey)
