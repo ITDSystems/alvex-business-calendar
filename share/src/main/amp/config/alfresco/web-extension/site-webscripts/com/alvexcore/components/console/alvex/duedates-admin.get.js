@@ -46,6 +46,7 @@ for (var i in limits) {
                                         {
                                             name: "alfresco/lists/views/layouts/Cell",
                                             config: {
+						additionalCssClasses: "mediumpad",
                                                 widgets: [
                                                     {
                                                         name: "alfresco/renderers/Property",
@@ -57,20 +58,26 @@ for (var i in limits) {
                                             }
                                         },
                                         {
-                                            name: "alfresco/renderers/InlineEditProperty",
-                                            config: {
-                                                propertyToRender: "limit",
-                                                refreshCurrentItem: true,
-                                                requirementConfig: {
-                                                    initialValue: true
-                                                },
-                                                publishTopic: "ALF_CRUD_UPDATE",
-                                                publishPayloadType: "PROCESS",
-                                                publishPayloadModifiers: ["processCurrentItemTokens"],
-                                                publishPayloadItemMixin: false,
-                                                publishPayload: {
-                                                    url: "api/alvex/duedates/limits/{limitKey}"
-                                                }
+					    name: "alfresco/lists/views/layouts/Cell",
+					    config: {
+						additionalCssClasses: "mediumpad",
+						widgets: [{
+                                                    name: "alfresco/renderers/InlineEditProperty",
+                                                    config: {
+                                                        propertyToRender: "limit",
+                                                        refreshCurrentItem: true,
+                                                        requirementConfig: {
+                                                            initialValue: true
+                                                        },
+                                                        publishTopic: "ALF_CRUD_UPDATE",
+                                                        publishPayloadType: "PROCESS",
+                                                        publishPayloadModifiers: ["processCurrentItemTokens"],
+                                                        publishPayloadItemMixin: false,
+                                                        publishPayload: {
+                                                            url: "api/alvex/duedates/limits/{limitKey}"
+							}
+						    }
+                                                }]
                                             }
                                         }
                                     ]
