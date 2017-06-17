@@ -7,8 +7,11 @@ This component provides a mechanism to automatically set task due dates based on
 
 ![image](https://github.com/ITDSystems/alvex/blob/master/img/alvex-configure-due-dates.png?raw=true)
 
-
 Compatible with Alfresco 5.x.
+This component depends on:
+* [Alvex Utils](https://github.com/ITDSystems/alvex-utils)
+* [net.objectlab.kit.datecalc.jdk8](http://objectlabkit.sourceforge.net/apidocs/net/objectlab/kit/datecalc/jdk8/package-summary.html)
+* [Apache Commons CSV](https://commons.apache.org/proper/commons-csv/)
 
 # Customization
 
