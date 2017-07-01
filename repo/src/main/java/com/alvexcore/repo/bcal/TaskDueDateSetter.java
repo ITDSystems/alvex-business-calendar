@@ -49,11 +49,16 @@ public class TaskDueDateSetter extends AlvexActivitiListener implements TaskList
     @Override
     public void notify(DelegateTask delegateTask) {
         BusinessCalendarHandler handler = businessCalendar.getHandler();
-        LocalDateCalculator calculator = new LocalDateCalculator(null, LocalDate.now(), businessCalendar.getHolidayCalendar(), new LocalDateForwardHandler());
+        LocalDate now = LocalDate.now();
+        LocalDateCalculator calculator = new LocalDateCalculator(null, now, businessCalendar.getHolidayCalendar(), new LocalDateForwardHandler());
 
         Integer timeLimit = businessCalendar.getTaskTimeLimit(handler.getTaskKeyInfo(delegateTask).toString());
+
         if (timeLimit < 0)
             return;
+
+        if (calculator.getCurrentBusinessDate() != now)
+            timeLimit--;
 
         calculator.moveByBusinessDays(timeLimit);
 
