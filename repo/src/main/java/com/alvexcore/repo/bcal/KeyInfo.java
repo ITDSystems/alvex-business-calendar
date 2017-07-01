@@ -39,24 +39,4 @@ public class KeyInfo
     {
         return taskKey + SEPARATOR + processKey;
     }
-
-    public String getFilteredProcessKey()
-    {
-        return getFilteredProcessKey(processKey);
-    }
-
-    public String getFilteredTaskKey()
-    {
-        return getFilteredTaskKey(taskKey);
-    }
-
-    public static String getFilteredProcessKey(String processKey)
-    {
-        return processKey;
-    }
-
-    public static String getFilteredTaskKey(String taskKey)
-    {
-        return taskKey.replaceAll("\\W", "_");
-    }
 }

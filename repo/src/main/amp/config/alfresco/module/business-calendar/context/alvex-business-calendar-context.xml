@@ -42,6 +42,9 @@
                 <!-- Intentionally left empty -->
             </list>
         </property>
+        <property name="lastHour" value="${alvex.bcal.workday.hour}"/>
+        <property name="lastMinute" value="${alvex.bcal.workday.minute}"/>
+        <property name="lastSecond" value="${alvex.bcal.workday.second}"/>
     </bean>
 
     <bean id='webscript.com.alvexcore.duedates.limits.get' class='com.alvexcore.repo.bcal.webscript.ListLimits'>

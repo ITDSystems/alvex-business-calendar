@@ -82,7 +82,7 @@ public class ListLimits extends AbstractWebScript {
             for (String processKey: sortedProcessKeys)
             {
                 JSONObject proc = new JSONObject();
-                String processLabelKey = String.format("%s.workflow.title", KeyInfo.getFilteredProcessKey(processKey));
+                String processLabelKey = String.format("%s.workflow.title", processKey).replace(":", "_");
                 proc.put("processLabel", getMessage(processLabelKey));
                 JSONArray jsonTaskLimits = new JSONArray();
                 proc.put("limits", jsonTaskLimits);
@@ -98,7 +98,7 @@ public class ListLimits extends AbstractWebScript {
                     String limitKey = keyInfo.toString();
                     limitInfo.put("limitKey", limitKey);
                     limitInfo.put("limit", limits.get(limitKey));
-                    String taskLabelKey = messageService.getMessage(String.format("%s.type.%s.title", modelName.replace(":", "_"), keyInfo.getFilteredTaskKey()));
+                    String taskLabelKey = String.format("%s.type.%s.title", modelName, taskKey).replace(":", "_");
                     limitInfo.put("taskLabel", getMessage(taskLabelKey));
 
                     jsonTaskLimits.put(limitInfo);
