@@ -13,8 +13,6 @@ import java.util.*;
 
 public class DefaultBusinessCalendarHandler extends AbstractBusinessCalendarHandler {
 
-    public static final String DEFAULT_BC_RESOURCE = "/russia-business-calendar-2019.csv";
-
     private String businessCalendarPath;
 
     @Required
@@ -48,9 +46,7 @@ public class DefaultBusinessCalendarHandler extends AbstractBusinessCalendarHand
 
     @Override
     public Set<LocalDate> loadHolidaysList() throws IOException {
-        File file = new File(businessCalendarPath);
-        URL url = file.exists() ? file.toURI().toURL() : this.getClass().getResource(DEFAULT_BC_RESOURCE);
-        return loadHolidaysListFromCsv(url);
+        return loadHolidaysListFromCsv(new URL(businessCalendarPath));
     }
 
     public static Set<LocalDate> loadHolidaysListFromCsv(URL businessCalendarPath) throws IOException

@@ -57,9 +57,7 @@ public class CustomBusinessCalendarHandler extends AbstractBusinessCalendarHandl
 
     @Override
     public Set<LocalDate> loadHolidaysList() throws IOException {
-        File file = new File(businessCalendarPath);
-        URL url = file.exists() ? file.toURI().toURL() : this.getClass().getResource(DefaultBusinessCalendarHandler.DEFAULT_BC_RESOURCE);
-        return DefaultBusinessCalendarHandler.loadHolidaysListFromCsv(url);
+        return DefaultBusinessCalendarHandler.loadHolidaysListFromCsv(new URL(businessCalendarPath));
     }
 
     @Override
