@@ -15,7 +15,7 @@ This component depends on:
 
 # Customization
 
-This component works out of the box and uses holiday calendar for Russia by default. To customize it one should implement [BusinessCalendarHandler](https://github.com/ITDSystems/alvex-business-calendar/blob/master/repo/src/main/java/com/alvexcore/repo/bcal/BusinessCalendarHandler.java) interface and define the corresponding bean that **must** use `alvexBusinessCalendarAbstractHandler` as a parent one. For more details see [CustomBusinessCalendarHandler](https://github.com/ITDSystems/alvex-business-calendar/blob/master/repo/src/main/java/com/alvexcore/repo/bcal/CustomBusinessCalendarHandler.java) implementation and [bean](https://github.com/ITDSystems/alvex-business-calendar/blob/master/repo/src/main/amp/config/alfresco/module/business-calendar/context/alvex-business-calendar-context.xml#L14) definition.
+This component works out of the box and uses holiday calendar for Russia by default. To customize it one should provide custom implementation of calendar handler that extends [AbstractBusinessCalendarHandler](https://github.com/ITDSystems/alvex-business-calendar/blob/master/repo/src/main/java/com/alvexcore/repo/bcal/AbstractBusinessCalendarHandler.java) class and define the corresponding bean that **must** use `alvexBusinessCalendarAbstractHandler` as a parent one. For more details see [CustomBusinessCalendarHandler](https://github.com/ITDSystems/alvex-business-calendar/blob/master/repo/src/main/java/com/alvexcore/repo/bcal/CustomBusinessCalendarHandler.java) implementation and [bean](https://github.com/ITDSystems/alvex-business-calendar/blob/master/repo/src/main/amp/config/alfresco/module/business-calendar/context/alvex-business-calendar-context.xml#L14) definition.
 
 # Downloads
 
