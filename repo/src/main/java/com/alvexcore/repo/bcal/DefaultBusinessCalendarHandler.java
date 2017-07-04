@@ -1,10 +1,16 @@
 package com.alvexcore.repo.bcal;
 
 import org.activiti.engine.delegate.DelegateTask;
+import org.activiti.engine.impl.persistence.entity.TaskEntity;
+import org.activiti.engine.runtime.ProcessInstance;
+import org.activiti.engine.task.Task;
+import org.alfresco.repo.jscript.ScriptNode;
+import org.alfresco.repo.workflow.activiti.ActivitiScriptNode;
+import org.alfresco.service.cmr.repository.NodeRef;
 import org.apache.commons.csv.CSVParser;
+import org.mozilla.javascript.NativeArray;
 import org.springframework.beans.factory.annotation.Required;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -90,5 +96,52 @@ public class DefaultBusinessCalendarHandler extends AbstractBusinessCalendarHand
     @Override
     public int compareProcessKeys(String key1, String key2) {
         return key1.compareTo(key2);
+    }
+
+    @Override
+    public Map<String, Object> buildEmailModel(Task task, NodeRef personRef) {
+        HashMap<String, Object> model = new HashMap<>();
+
+        model.put("shareUrl", shareUrl);
+
+        model.put("taskTitle", task.getDescription());
+        model.put("taskId", "activiti$" + task.getId());
+        model.put("taskDueDate", task.getDueDate().toInstant().atOffset(businessCalendar.getZoneOffset()).toLocalDate().toString());
+
+        String pid = task.getProcessInstanceId();
+        ProcessInstance processInstance = runtimeService.createProcessInstanceQuery().processInstanceId(pid).singleResult();
+        if (processInstance == null)
+            processInstance = ((TaskEntity)task).getProcessInstance();
+
+        Map<String, Object> variables = runtimeService.getVariables(task.getExecutionId());
+
+        String workflowDescription = (String) variables.get("bpm_workflowDescription");
+        if (workflowDescription != null && !workflowDescription.isEmpty())
+            model.put("workflowDescription", workflowDescription);
+
+        String workflowName = repositoryService.getProcessDefinition(processInstance.getProcessDefinitionId()).getName();
+        model.put("workflowTitle", workflowName);
+
+        ActivitiScriptNode workflowPackage = (ActivitiScriptNode) variables.get("bpm_package");
+
+        NativeArray children = (NativeArray) workflowPackage.getChildren();
+
+        List<Map> workflowDocuments = new ArrayList<>();
+
+        for (Object child: children)
+        {
+            ScriptNode node = (ScriptNode) child;
+
+            HashMap<String, String> doc = new HashMap<>();
+            doc.put("id", node.getId());
+            doc.put("name", node.getName());
+
+            workflowDocuments.add(doc);
+        }
+
+        if (!workflowDocuments.isEmpty())
+            model.put("workflowDocuments", workflowDocuments);
+
+        return model;
     }
 }

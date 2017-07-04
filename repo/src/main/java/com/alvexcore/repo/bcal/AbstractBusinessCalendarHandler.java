@@ -4,26 +4,33 @@ import org.activiti.bpmn.model.BpmnModel;
 import org.activiti.bpmn.model.Process;
 import org.activiti.bpmn.model.UserTask;
 import org.activiti.engine.RepositoryService;
+import org.activiti.engine.RuntimeService;
+import org.activiti.engine.delegate.DelegateTask;
 import org.activiti.engine.repository.ProcessDefinition;
 import org.activiti.engine.repository.ProcessDefinitionQuery;
+import org.activiti.engine.task.Task;
 import org.alfresco.service.ServiceRegistry;
+import org.alfresco.service.cmr.repository.NodeRef;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Required;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public abstract class AbstractBusinessCalendarHandler implements BusinessCalendarHandler, InitializingBean{
+public abstract class AbstractBusinessCalendarHandler implements InitializingBean {
 
     protected ServiceRegistry serviceRegistry;
     protected BusinessCalendar businessCalendar;
     protected RepositoryService repositoryService;
+    protected RuntimeService runtimeService;
     protected List<String> matches;
     protected TaskDueDateSetter dueDateSetter;
+    protected Properties properties;
+
+    protected String shareUrl;
 
     @Required
     public void setServiceRegistry(ServiceRegistry serviceRegistry) {
@@ -36,14 +43,35 @@ public abstract class AbstractBusinessCalendarHandler implements BusinessCalenda
     }
 
     @Required
+    public void setRuntimeService(RuntimeService runtimeService) {
+        this.runtimeService = runtimeService;
+    }
+
+    @Required
     public void setBusinessCalendar(BusinessCalendar businessCalendar) {
         this.businessCalendar = businessCalendar;
         this.businessCalendar.registerHandler(this);
     }
 
     @Required
+    public void setProperties(Properties properties) {
+        this.properties = properties;
+
+        shareUrl = String.format("%s://%s:%s/%s",
+            properties.getProperty("share.protocol"),
+            properties.getProperty("share.host"),
+            properties.getProperty("share.port"),
+            properties.getProperty("share.context")
+        );
+    }
+
+    @Required
     public void setMatches(List<String> matches) {
         this.matches = matches;
+    }
+
+    public List<String> getMatches() {
+        return matches;
     }
 
     @Required
@@ -79,12 +107,30 @@ public abstract class AbstractBusinessCalendarHandler implements BusinessCalenda
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        if (this == businessCalendar.getHandler())
-            dueDateSetter.setMatches(matches.stream().map(s -> "task-create:.*@" + s).collect(Collectors.toList()));
+        if (this == businessCalendar.getHandler()) {
+            dueDateSetter.setMatches(
+                matches.stream()
+                    .map(s -> Arrays.asList("task-create:.*@" + s, "task-assign-after-change:.*@" + s, "process-start@" + s))
+                    .flatMap(l -> l.stream())
+                .collect(Collectors.toList())
+            );
+        }
     }
 
     public KeyInfo getTaskKeyInfo(String procecessKey, String formKey)
     {
         return new KeyInfo(procecessKey, formKey);
     }
+
+    public abstract KeyInfo getTaskKeyInfo(DelegateTask delegateTask);
+
+    public abstract Map<String, Integer> getDefaultLimits();
+
+    public abstract Set<LocalDate> loadHolidaysList() throws IOException;
+
+    public abstract int compareTaskKeys(String processKey, String key1, String key2);
+
+    public abstract int compareProcessKeys(String key1, String key2);
+
+    public abstract Map<String, Object> buildEmailModel(Task task, NodeRef personRef);
 }

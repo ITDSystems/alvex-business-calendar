@@ -2,13 +2,26 @@
 <!DOCTYPE beans PUBLIC '-//SPRING//DTD BEAN//EN' 'http://www.springframework.org/dtd/spring-beans.dtd'>
 <!--suppress SpringFacetInspection -->
 <beans>
-    <bean id="alvexBusinessCalendar" parent="alvex-key-value-store-aware" class="com.alvexcore.repo.bcal.BusinessCalendar"/>
+    <bean id="alvexBusinessCalendar" parent="alvex-key-value-store-aware" class="com.alvexcore.repo.bcal.BusinessCalendar" depends-on="alvex-repo-extension-registry">
+        <property name="onAssignBodyTemplatePath" value="${alvex.bcal.email.template.assign.body}"/>
+        <property name="onAssignSubjectTemplatePath" value="${alvex.bcal.email.template.assign.subject}"/>
+        <property name="onDeadlineBodyTemplatePath" value="${alvex.bcal.email.template.deadline.body}"/>
+        <property name="onDeadlineSubjectTemplatePath" value="${alvex.bcal.email.template.deadline.subject}"/>
+        <property name="onDeadlineTodayBodyTemplatePath" value="${alvex.bcal.email.template.deadline.today.body}"/>
+        <property name="onDeadlineTodaySubjectTemplatePath" value="${alvex.bcal.email.template.deadline.today.subject}"/>
+        <property name="onOverdueBodyTemplatePath" value="${alvex.bcal.email.template.overdue.body}"/>
+        <property name="onOverdueSubjectTemplatePath" value="${alvex.bcal.email.template.overdue.subject}"/>
+        <property name="emailFrom" value="${alvex.bcal.email.from}" />
+        <property name="services" ref="ServiceRegistry" />
+    </bean>
 
     <bean id="alvexBusinessCalendarAbstractHandler" abstract="true">
         <property name="serviceRegistry" ref="ServiceRegistry"/>
         <property name="repositoryService" ref="activitiRepositoryService"/>
+        <property name="runtimeService" ref="activitiRuntimeService" />
         <property name="businessCalendar" ref="alvexBusinessCalendar"/>
         <property name="dueDateSetter" ref="alvexBusinessCalendarDueDateSetter" />
+        <property name="properties" ref="global-properties" />
     </bean>
 
     <!-- This is an example of how custom handler may be configured
@@ -54,6 +67,44 @@
 
     <bean id='webscript.com.alvexcore.duedates.limit.put' class='com.alvexcore.repo.bcal.webscript.SetLimit'>
         <property name="businessCalendar" ref="alvexBusinessCalendar"/>
+    </bean>
+
+    <bean id="alvexSendTaskNotificationsJobExecuter" class="com.alvexcore.repo.bcal.jobs.SendTaskNotificationsJobExecuter" parent="alvex-key-value-store-aware">
+        <property name="taskService" ref="activitiTaskService"/>
+        <property name="repositoryService" ref="activitiRepositoryService" />
+        <property name="businessCalendar" ref="alvexBusinessCalendar"/>
+        <property name="deadline" value="${alvex.bcal.email.deadline.days}"/>
+    </bean>
+
+    <bean id="alvexSendTaskNotificationsJob" class="org.springframework.scheduling.quartz.JobDetailBean">
+        <property name="jobClass">
+            <value>com.alvexcore.repo.bcal.jobs.SendTaskNotificationsJob</value>
+        </property>
+        <property name="jobDataAsMap">
+            <map>
+                <entry key="jobLockService">
+                    <ref bean="jobLockService" />
+                </entry>
+                <entry key="executer">
+                    <ref bean="alvexSendTaskNotificationsJobExecuter"/>
+                </entry>
+            </map>
+        </property>
+    </bean>
+
+    <bean id="alvexSendTaskNotificationsJobTrigger" class="org.alfresco.util.CronTriggerBean">
+        <property name="jobDetail">
+            <ref bean="alvexSendTaskNotificationsJob" />
+        </property>
+        <property name="scheduler">
+            <ref bean="schedulerFactory" />
+        </property>
+        <property name="cronExpression">
+            <value>${alvex.bcal.jobs.sendNotifications.cronExpression}</value>
+        </property>
+        <property name="startDelay">
+            <value>${alvex.bcal.jobs.sendNotifications.cronStartDelay}</value>
+        </property>
     </bean>
 
     <bean id="alvex-bcal" parent="alvex-extension" class="com.alvexcore.repo.BusinessCalendarExtension"/>

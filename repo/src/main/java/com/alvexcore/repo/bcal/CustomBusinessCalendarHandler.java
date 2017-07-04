@@ -1,9 +1,10 @@
 package com.alvexcore.repo.bcal;
 
 import org.activiti.engine.delegate.DelegateTask;
+import org.activiti.engine.task.Task;
+import org.alfresco.service.cmr.repository.NodeRef;
 import org.springframework.beans.factory.annotation.Required;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDate;
@@ -68,5 +69,11 @@ public class CustomBusinessCalendarHandler extends AbstractBusinessCalendarHandl
     @Override
     public int compareProcessKeys(String key1, String key2) {
         return -key1.compareTo(key2);
+    }
+
+    @Override
+    public Map<String, Object> buildEmailModel(Task task, NodeRef personRef) {
+        // TODO implement
+        return null;
     }
 }

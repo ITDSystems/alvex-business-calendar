@@ -3,23 +3,22 @@ package com.alvexcore.repo.bcal;
 import com.alvexcore.repo.workflow.activiti.AlvexActivitiListener;
 import net.objectlab.kit.datecalc.jdk8.LocalDateCalculator;
 import net.objectlab.kit.datecalc.jdk8.LocalDateForwardHandler;
+import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.DelegateTask;
+import org.activiti.engine.delegate.ExecutionListener;
 import org.activiti.engine.delegate.TaskListener;
+import org.alfresco.repo.workflow.WorkflowNotificationUtils;
 import org.springframework.beans.factory.annotation.Required;
 
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.Date;
 
-public class TaskDueDateSetter extends AlvexActivitiListener implements TaskListener {
+public class TaskDueDateSetter extends AlvexActivitiListener implements TaskListener, ExecutionListener {
 
     private BusinessCalendar businessCalendar;
     private int lastHour;
     private int lastMinute;
     private int lastSecond;
-    private ZoneOffset zoneOffset;
 
     @Required
     public void setLastHour(int lastHour) {
@@ -37,18 +36,21 @@ public class TaskDueDateSetter extends AlvexActivitiListener implements TaskList
     }
 
     @Override
-    public void afterPropertiesSet() throws Exception {
-        super.afterPropertiesSet();
+    public void notify(DelegateTask delegateTask) {
+        String eventName = delegateTask.getEventName();
 
-        Instant instant = Instant.now();
-        ZoneId systemZone = ZoneId.systemDefault();
-        zoneOffset = systemZone.getRules().getOffset(instant);
-
+        if (eventName.equals(TaskListener.EVENTNAME_CREATE)) {
+            setTaskDueDate(delegateTask);
+            businessCalendar.onTaskAssigned(delegateTask);
+        }
+        else if (eventName.equals(TaskListener.EVENTNAME_ASSIGNMENT)) {
+            if (delegateTask.getDueDate() != null)
+                businessCalendar.onTaskAssigned(delegateTask);
+        }
     }
 
-    @Override
-    public void notify(DelegateTask delegateTask) {
-        BusinessCalendarHandler handler = businessCalendar.getHandler();
+    private void setTaskDueDate(DelegateTask delegateTask) {
+        AbstractBusinessCalendarHandler handler = businessCalendar.getHandler();
         LocalDate now = LocalDate.now();
         LocalDateCalculator calculator = new LocalDateCalculator(null, now, businessCalendar.getHolidayCalendar(), new LocalDateForwardHandler());
 
@@ -62,7 +64,7 @@ public class TaskDueDateSetter extends AlvexActivitiListener implements TaskList
 
         calculator.moveByBusinessDays(timeLimit);
 
-        Date date = Date.from(calculator.getCurrentBusinessDate().atTime(lastHour, lastMinute, lastSecond).toInstant(zoneOffset));
+        Date date = Date.from(calculator.getCurrentBusinessDate().atTime(lastHour, lastMinute, lastSecond).toInstant(businessCalendar.getZoneOffset()));
 
         delegateTask.setDueDate(date);
     }
@@ -72,4 +74,9 @@ public class TaskDueDateSetter extends AlvexActivitiListener implements TaskList
     }
 
 
+    @Override
+    public void notify(DelegateExecution execution) throws Exception {
+        // Disable out-of-the-box notifications
+        execution.setVariableLocal(WorkflowNotificationUtils.PROP_SEND_EMAIL_NOTIFICATIONS, false);
+    }
 }

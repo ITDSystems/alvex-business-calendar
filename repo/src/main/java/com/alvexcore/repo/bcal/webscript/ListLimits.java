@@ -1,7 +1,7 @@
 package com.alvexcore.repo.bcal.webscript;
 
+import com.alvexcore.repo.bcal.AbstractBusinessCalendarHandler;
 import com.alvexcore.repo.bcal.BusinessCalendar;
-import com.alvexcore.repo.bcal.BusinessCalendarHandler;
 import com.alvexcore.repo.bcal.KeyInfo;
 import org.alfresco.repo.i18n.MessageService;
 import org.alfresco.service.ServiceRegistry;
@@ -51,7 +51,7 @@ public class ListLimits extends AbstractWebScript {
 
     @Override
     public void execute(WebScriptRequest webScriptRequest, WebScriptResponse webScriptResponse) throws IOException {
-        BusinessCalendarHandler handler = businessCalendar.getHandler();
+        AbstractBusinessCalendarHandler handler = businessCalendar.getHandler();
 
         Map<String, Integer> limits = businessCalendar.getLimitsMap();
 
