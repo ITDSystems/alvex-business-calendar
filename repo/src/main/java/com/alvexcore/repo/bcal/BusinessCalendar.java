@@ -249,7 +249,10 @@ public class BusinessCalendar extends KeyValueStoreAware implements Initializing
         if (assignee == null)
             return;
 
-        NodeRef personRef = personService.getPerson(assignee);
+        NodeRef personRef = personService.getPersonOrNull(assignee);
+        if (personRef == null)
+            return;
+
         String emailTo = (String) nodeService.getProperty(personRef, ContentModel.PROP_EMAIL);
 
         Object model = handler.buildEmailModel(task, personRef);
