@@ -124,19 +124,21 @@ public class DefaultBusinessCalendarHandler extends AbstractBusinessCalendarHand
 
         ActivitiScriptNode workflowPackage = (ActivitiScriptNode) variables.get("bpm_package");
 
-        NativeArray children = (NativeArray) workflowPackage.getChildren();
-
         List<Map> workflowDocuments = new ArrayList<>();
 
-        for (Object child: children)
-        {
-            ScriptNode node = (ScriptNode) child;
+        // Without this check workflowPackage.getChildren() fails with NPE if package is empty
+        if (workflowPackage.getHasChildren()) {
+            NativeArray children = (NativeArray) workflowPackage.getChildren();
 
-            HashMap<String, String> doc = new HashMap<>();
-            doc.put("id", node.getId());
-            doc.put("name", node.getName());
+            for (Object child : children) {
+                ScriptNode node = (ScriptNode) child;
 
-            workflowDocuments.add(doc);
+                HashMap<String, String> doc = new HashMap<>();
+                doc.put("id", node.getId());
+                doc.put("name", node.getName());
+
+                workflowDocuments.add(doc);
+            }
         }
 
         if (!workflowDocuments.isEmpty())
