@@ -245,7 +245,11 @@ public class BusinessCalendar extends KeyValueStoreAware implements Initializing
     protected void sendEmail(Task task, String templateKey) throws IOException, TemplateException {
         Action mailAction = actionService.createAction(MailActionExecuter.NAME);
 
-        NodeRef personRef = personService.getPerson(task.getAssignee());
+        String assignee = task.getAssignee();
+        if (assignee == null)
+            return;
+
+        NodeRef personRef = personService.getPerson(assignee);
         String emailTo = (String) nodeService.getProperty(personRef, ContentModel.PROP_EMAIL);
 
         Object model = handler.buildEmailModel(task, personRef);
