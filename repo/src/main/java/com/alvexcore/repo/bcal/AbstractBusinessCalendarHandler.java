@@ -1,5 +1,6 @@
 package com.alvexcore.repo.bcal;
 
+import freemarker.cache.StringTemplateLoader;
 import org.activiti.bpmn.model.BpmnModel;
 import org.activiti.bpmn.model.Process;
 import org.activiti.bpmn.model.UserTask;
@@ -133,4 +134,6 @@ public abstract class AbstractBusinessCalendarHandler implements InitializingBea
     public abstract int compareProcessKeys(String key1, String key2);
 
     public abstract Map<String, Object> buildEmailModel(Task task, NodeRef personRef);
+
+    public abstract void loadCustomTemplates(StringTemplateLoader templateLoader);
 }

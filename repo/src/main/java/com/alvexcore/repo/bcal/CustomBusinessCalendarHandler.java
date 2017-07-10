@@ -1,5 +1,6 @@
 package com.alvexcore.repo.bcal;
 
+import freemarker.cache.StringTemplateLoader;
 import org.activiti.engine.delegate.DelegateTask;
 import org.activiti.engine.task.Task;
 import org.alfresco.service.cmr.repository.NodeRef;
@@ -75,5 +76,10 @@ public class CustomBusinessCalendarHandler extends AbstractBusinessCalendarHandl
     public Map<String, Object> buildEmailModel(Task task, NodeRef personRef) {
         // TODO implement
         return null;
+    }
+
+    @Override
+    public void loadCustomTemplates(StringTemplateLoader templateLoader) {
+        templateLoader.putTemplate("custom", "Custom template body");
     }
 }

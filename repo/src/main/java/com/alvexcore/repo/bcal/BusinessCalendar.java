@@ -74,6 +74,7 @@ public class BusinessCalendar extends KeyValueStoreAware implements Initializing
     private String emailFrom;
     private Configuration freemarkerCfg;
     private Map<String, String> templateUrls = new HashMap<>();
+    private StringTemplateLoader freemarkerTemplateLoader;
 
     public BusinessCalendar() {
         Instant instant = Instant.now();
@@ -195,6 +196,7 @@ public class BusinessCalendar extends KeyValueStoreAware implements Initializing
         holidayCalendar.setHolidays(handler.loadHolidaysList());
 
         setDefaultLimits(handler.getDefaultLimits());
+        handler.loadCustomTemplates(freemarkerTemplateLoader);
     }
 
     public void registerHandler(AbstractBusinessCalendarHandler handler)
@@ -286,13 +288,13 @@ public class BusinessCalendar extends KeyValueStoreAware implements Initializing
         freemarkerCfg = new Configuration();
         freemarkerCfg.setDefaultEncoding("UTF-8");
 
-        StringTemplateLoader templateLoader = new StringTemplateLoader();
-        freemarkerCfg.setTemplateLoader(templateLoader);
+        freemarkerTemplateLoader = new StringTemplateLoader();
+        freemarkerCfg.setTemplateLoader(freemarkerTemplateLoader);
 
         for (String key1: Arrays.asList(ON_ASSIGN_TEMPLATE_KEY, ON_DEADLINE_TEMPLATE_KEY, ON_OVERDUE_TEMPLATE_KEY))
             for (String key2: Arrays.asList(BODY_TEMPLATE_KEY, SUBJECT_TEMPLATE_KEY)) {
                 String key = key1 + key2;
-                templateLoader.putTemplate(key, IOUtils.toString(new URL(templateUrls.get(key))));
+                freemarkerTemplateLoader.putTemplate(key, IOUtils.toString(new URL(templateUrls.get(key))));
             }
     }
 

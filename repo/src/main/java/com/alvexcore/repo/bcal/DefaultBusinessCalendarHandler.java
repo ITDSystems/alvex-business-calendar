@@ -1,5 +1,6 @@
 package com.alvexcore.repo.bcal;
 
+import freemarker.cache.StringTemplateLoader;
 import org.activiti.engine.delegate.DelegateTask;
 import org.activiti.engine.impl.persistence.entity.TaskEntity;
 import org.activiti.engine.runtime.ProcessInstance;
@@ -145,5 +146,10 @@ public class DefaultBusinessCalendarHandler extends AbstractBusinessCalendarHand
             model.put("workflowDocuments", workflowDocuments);
 
         return model;
+    }
+
+    @Override
+    public void loadCustomTemplates(StringTemplateLoader templateLoader) {
+        // nothing to do here
     }
 }
