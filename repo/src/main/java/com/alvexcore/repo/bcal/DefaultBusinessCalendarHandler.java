@@ -1,8 +1,14 @@
 package com.alvexcore.repo.bcal;
 
+import com.alvexcore.repo.workflow.activiti.graph.ProcessGraph;
 import freemarker.cache.StringTemplateLoader;
+import org.activiti.bpmn.model.BpmnModel;
+import org.activiti.bpmn.model.Process;
+import org.activiti.bpmn.model.UserTask;
+import org.activiti.engine.RuntimeService;
 import org.activiti.engine.delegate.DelegateTask;
 import org.activiti.engine.impl.persistence.entity.TaskEntity;
+import org.activiti.engine.repository.ProcessDefinition;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.task.Task;
 import org.alfresco.repo.jscript.ScriptNode;
@@ -17,10 +23,61 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class DefaultBusinessCalendarHandler extends AbstractBusinessCalendarHandler {
 
+    class TaskKeyComparator
+    {
+        RuntimeService runtimeService;
+
+        Map<String, Map<String, Integer>> distances = new HashMap<>();
+
+        public TaskKeyComparator(RuntimeService runtimeService) {
+            this.runtimeService = runtimeService;
+
+            for (ProcessDefinition definition: repositoryService.createProcessDefinitionQuery().latestVersion().list())
+            {
+                String definitionKey = definition.getKey();
+                BpmnModel model = repositoryService.getBpmnModel(definition.getId());
+
+                Process process = model.getMainProcess();
+
+                ProcessGraph graph = new ProcessGraph(process);
+
+                Set<String> userTasks = graph.getUserTasks().stream()
+                        .map(org.activiti.bpmn.model.Task::getId)
+                        .collect(Collectors.toSet());
+
+                distances.put(
+                        definitionKey,
+                        graph.bfs(null, null, null).entrySet().stream()
+                           .filter(entry -> userTasks.contains(entry.getKey()))
+                            .collect(Collectors.toMap(
+                                    entry -> ((UserTask)graph.getElementById(entry.getKey())).getFormKey(),
+                                    Map.Entry::getValue,
+                                    (e1, e2) -> e1,
+                                    LinkedHashMap::new
+                            ))
+                 );
+            }
+        }
+
+        public int compare(String processKey, String formKey1, String formKey2)
+        {
+            String definitionKey = getProcessDefinitionKey(processKey);
+            Map<String, Integer> d = distances.get(definitionKey);
+
+            if (d == null)
+                return formKey1.compareTo(formKey2);
+
+            return d.getOrDefault(formKey1, 0) - d.getOrDefault(formKey2, 0);
+        }
+    }
+
+
     private String businessCalendarPath;
+    private TaskKeyComparator comparator;
 
     @Required
     public void setBusinessCalendarPath(String businessCalendarPath) {
@@ -31,6 +88,11 @@ public class DefaultBusinessCalendarHandler extends AbstractBusinessCalendarHand
     public KeyInfo getTaskKeyInfo(DelegateTask delegateTask) {
         String processName = delegateTask.getProcessDefinitionId().split(":")[0];
         return getTaskKeyInfo(processName, delegateTask.getFormKey());
+    }
+
+    public String getProcessDefinitionKey(String processKey)
+    {
+        return processKey;
     }
 
     @Override
@@ -91,7 +153,7 @@ public class DefaultBusinessCalendarHandler extends AbstractBusinessCalendarHand
 
     @Override
     public int compareTaskKeys(String processKey, String key1, String key2) {
-        return key1.compareTo(key2);
+        return comparator.compare(processKey, key1, key2);
     }
 
     @Override
@@ -151,5 +213,12 @@ public class DefaultBusinessCalendarHandler extends AbstractBusinessCalendarHand
     @Override
     public void loadCustomTemplates(StringTemplateLoader templateLoader) {
         // nothing to do here
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        super.afterPropertiesSet();
+
+        comparator = new TaskKeyComparator(runtimeService);
     }
 }
