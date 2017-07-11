@@ -32,8 +32,6 @@ public class SendTaskNotificationsJobExecuter extends KeyValueStoreAware {
     private int deadline;
     private ConcurrentMap<String, LocalDate> alvexGlobalKVS;
 
-    private LocalDate lastRun;
-
     @Required
     public void setBusinessCalendar(BusinessCalendar businessCalendar) {
         this.businessCalendar = businessCalendar;
@@ -58,8 +56,7 @@ public class SendTaskNotificationsJobExecuter extends KeyValueStoreAware {
     void execute() {
         LocalDate now = LocalDate.now();
 
-        if (lastRun == null)
-            lastRun = alvexGlobalKVS.get(LAST_RUN);
+        LocalDate lastRun = alvexGlobalKVS.get(LAST_RUN);
 
         if (now.equals(lastRun))
         {
