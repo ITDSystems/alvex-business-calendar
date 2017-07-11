@@ -2,3 +2,4 @@ target
 alf_data*
 *.iml
 .idea
+repo/src/test/properties/local/alfresco-global.properties
