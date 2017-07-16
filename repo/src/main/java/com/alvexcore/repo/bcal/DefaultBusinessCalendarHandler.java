@@ -2,6 +2,7 @@ package com.alvexcore.repo.bcal;
 
 import com.alvexcore.repo.workflow.activiti.graph.ProcessGraph;
 import freemarker.cache.StringTemplateLoader;
+import freemarker.template.Configuration;
 import org.activiti.bpmn.model.BpmnModel;
 import org.activiti.bpmn.model.Process;
 import org.activiti.bpmn.model.UserTask;
@@ -113,11 +114,6 @@ public class DefaultBusinessCalendarHandler extends AbstractBusinessCalendarHand
         return limitsMap;
     }
 
-    @Override
-    public Set<LocalDate> loadHolidaysList() throws IOException {
-        return loadHolidaysListFromCsv(new URL(businessCalendarPath));
-    }
-
     public static Set<LocalDate> loadHolidaysListFromCsv(URL businessCalendarPath) throws IOException
     {
         CSVParser parser = new CSVParser(new InputStreamReader(businessCalendarPath.openStream()));
@@ -211,14 +207,9 @@ public class DefaultBusinessCalendarHandler extends AbstractBusinessCalendarHand
     }
 
     @Override
-    public void loadCustomTemplates(StringTemplateLoader templateLoader) {
-        // nothing to do here
-    }
-
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        super.afterPropertiesSet();
-
+    public Set<LocalDate> initialize(Configuration configuration, StringTemplateLoader templateLoader) throws Exception {
         comparator = new TaskKeyComparator(runtimeService);
+
+        return loadHolidaysListFromCsv(new URL(businessCalendarPath));
     }
 }

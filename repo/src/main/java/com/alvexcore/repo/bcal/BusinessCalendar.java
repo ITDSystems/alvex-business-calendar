@@ -39,10 +39,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentMap;
 
 public class BusinessCalendar extends KeyValueStoreAware implements InitializingBean, ApplicationContextAware, ApplicationListener<ContextRefreshedEvent> {
@@ -191,12 +188,13 @@ public class BusinessCalendar extends KeyValueStoreAware implements Initializing
         }
     }
 
-    private void initialize() throws IOException{
+    private void initialize() throws Exception {
+        Set<LocalDate> holidayList = handler.initialize(freemarkerCfg, freemarkerTemplateLoader);
+
         holidayCalendar = new DefaultHolidayCalendar<>();
-        holidayCalendar.setHolidays(handler.loadHolidaysList());
+        holidayCalendar.setHolidays(holidayList);
 
         setDefaultLimits(handler.getDefaultLimits());
-        handler.loadCustomTemplates(freemarkerTemplateLoader);
     }
 
     public void registerHandler(AbstractBusinessCalendarHandler handler)

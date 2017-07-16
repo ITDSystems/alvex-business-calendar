@@ -1,12 +1,12 @@
 package com.alvexcore.repo.bcal;
 
 import freemarker.cache.StringTemplateLoader;
+import freemarker.template.Configuration;
 import org.activiti.engine.delegate.DelegateTask;
 import org.activiti.engine.task.Task;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.springframework.beans.factory.annotation.Required;
 
-import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDate;
 import java.util.*;
@@ -58,11 +58,6 @@ public class CustomBusinessCalendarHandler extends AbstractBusinessCalendarHandl
     }
 
     @Override
-    public Set<LocalDate> loadHolidaysList() throws IOException {
-        return DefaultBusinessCalendarHandler.loadHolidaysListFromCsv(new URL(businessCalendarPath));
-    }
-
-    @Override
     public int compareTaskKeys(String processKey, String key1, String key2) {
         return -key1.compareTo(key2);
     }
@@ -79,7 +74,9 @@ public class CustomBusinessCalendarHandler extends AbstractBusinessCalendarHandl
     }
 
     @Override
-    public void loadCustomTemplates(StringTemplateLoader templateLoader) {
+    public Set<LocalDate> initialize(Configuration configuration, StringTemplateLoader templateLoader) throws Exception {
         templateLoader.putTemplate("custom", "Custom template body");
+
+        return DefaultBusinessCalendarHandler.loadHolidaysListFromCsv(new URL(businessCalendarPath));
     }
 }
