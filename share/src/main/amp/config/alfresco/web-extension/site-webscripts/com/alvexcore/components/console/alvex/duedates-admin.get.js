@@ -9,6 +9,15 @@ var widgets = [
 
 var limits = eval('(' + remote.connect('alfresco').get('/api/alvex/duedates/limits') + ')').limits;
 
+// W/A  for Aikau issue with non-editable integer fields
+// See https://github.com/ITDSystems/alvex-business-calendar/issues/1
+
+for each(var process in limits)
+    for each(var limit in process.limits)
+        limit.limit = limit.limit.toString();
+
+//
+
 for (var i in limits) {
     var process = limits[i];
     widgets.push({
