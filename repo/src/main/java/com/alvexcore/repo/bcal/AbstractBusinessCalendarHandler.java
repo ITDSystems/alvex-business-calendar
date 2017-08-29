@@ -119,6 +119,11 @@ public abstract class AbstractBusinessCalendarHandler implements InitializingBea
         }
     }
 
+    public boolean isRealAssignee(String assignee)
+    {
+        return assignee != null;
+    }
+
     public KeyInfo getTaskKeyInfo(String procecessKey, String formKey)
     {
         return new KeyInfo(procecessKey, formKey);

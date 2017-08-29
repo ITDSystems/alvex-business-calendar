@@ -41,10 +41,9 @@ public class TaskDueDateSetter extends AlvexActivitiListener implements TaskList
 
         if (eventName.equals(TaskListener.EVENTNAME_CREATE)) {
             setTaskDueDate(delegateTask);
-            businessCalendar.onTaskAssigned(delegateTask);
         }
         else if (eventName.equals(TaskListener.EVENTNAME_ASSIGNMENT)) {
-            if (delegateTask.getDueDate() != null)
+            if (businessCalendar.getHandler().isRealAssignee(delegateTask.getAssignee()))
                 businessCalendar.onTaskAssigned(delegateTask);
         }
     }

@@ -44,6 +44,7 @@ import java.util.concurrent.ConcurrentMap;
 
 public class BusinessCalendar extends KeyValueStoreAware implements InitializingBean, ApplicationContextAware, ApplicationListener<ContextRefreshedEvent> {
 
+    public static final String LAST_EMAIL_SENT_TO = "LAST_EMAIL_SENT_TO";
     private final Log logger = LogFactory.getLog(BusinessCalendar.class);
 
     public static final Integer DEFAULT_TASK_TIME_LIMIT = 2;
@@ -210,9 +211,15 @@ public class BusinessCalendar extends KeyValueStoreAware implements Initializing
     }
 
     public void onTaskAssigned(DelegateTask task) {
-        Task taskInfo = (Task) task;
+        String lastAssignee = (String) task.getVariableLocal(LAST_EMAIL_SENT_TO);
+        String currentAssignee = task.getAssignee();
+
+        if (currentAssignee == null || currentAssignee.equals(lastAssignee))
+            return;
+
+        task.setVariableLocal(LAST_EMAIL_SENT_TO, currentAssignee);
         try {
-            sendEmail(taskInfo, ON_ASSIGN_TEMPLATE_KEY);
+            sendEmail((Task)task, ON_ASSIGN_TEMPLATE_KEY);
         } catch (Exception e) {
             logger.error("Failed to send email", e);
         }
