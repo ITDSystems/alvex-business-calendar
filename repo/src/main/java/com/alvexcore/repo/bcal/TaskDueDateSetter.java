@@ -15,6 +15,7 @@ import java.util.Date;
 
 public class TaskDueDateSetter extends AlvexActivitiListener implements TaskListener, ExecutionListener {
 
+    private static final String TASK_CREATED = "TASK_CREATED";
     private BusinessCalendar businessCalendar;
     private int lastHour;
     private int lastMinute;
@@ -41,10 +42,13 @@ public class TaskDueDateSetter extends AlvexActivitiListener implements TaskList
 
         if (eventName.equals(TaskListener.EVENTNAME_CREATE)) {
             setTaskDueDate(delegateTask);
+            delegateTask.setVariableLocal(TASK_CREATED, true);
+            businessCalendar.onTaskAssigned(delegateTask);
         }
         else if (eventName.equals(TaskListener.EVENTNAME_ASSIGNMENT)) {
             if (businessCalendar.getHandler().isRealAssignee(delegateTask.getAssignee()))
-                businessCalendar.onTaskAssigned(delegateTask);
+                if (Boolean.TRUE.equals(delegateTask.getVariableLocal(TASK_CREATED)))
+                    businessCalendar.onTaskAssigned(delegateTask);
         }
     }
 

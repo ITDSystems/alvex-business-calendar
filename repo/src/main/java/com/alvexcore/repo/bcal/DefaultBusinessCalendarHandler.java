@@ -15,6 +15,7 @@ import org.activiti.engine.task.Task;
 import org.alfresco.repo.jscript.ScriptNode;
 import org.alfresco.repo.workflow.activiti.ActivitiScriptNode;
 import org.alfresco.service.cmr.repository.NodeRef;
+import org.alfresco.service.cmr.workflow.WorkflowService;
 import org.apache.commons.csv.CSVParser;
 import org.mozilla.javascript.NativeArray;
 import org.springframework.beans.factory.annotation.Required;
@@ -27,6 +28,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class DefaultBusinessCalendarHandler extends AbstractBusinessCalendarHandler {
+
+    private WorkflowService workflowService;
 
     class TaskKeyComparator
     {
@@ -163,7 +166,11 @@ public class DefaultBusinessCalendarHandler extends AbstractBusinessCalendarHand
 
         model.put("shareUrl", shareUrl);
 
-        model.put("taskTitle", task.getDescription());
+        // W/A for some unknown reason DelegateTask::description == null on reassignment
+        String taskTitle = task.getDescription();
+        if (taskTitle == null)
+            taskTitle = workflowService.getTaskById("activiti$" + task.getId()).getDescription();
+        model.put("taskTitle", taskTitle);
         model.put("taskId", "activiti$" + task.getId());
         model.put("taskDueDate", task.getDueDate().toInstant().atOffset(businessCalendar.getZoneOffset()).toLocalDate().toString());
 
@@ -209,6 +216,7 @@ public class DefaultBusinessCalendarHandler extends AbstractBusinessCalendarHand
     @Override
     public Set<LocalDate> initialize(Configuration configuration, StringTemplateLoader templateLoader) throws Exception {
         comparator = new TaskKeyComparator(runtimeService);
+        workflowService = serviceRegistry.getWorkflowService();
 
         return loadHolidaysListFromCsv(new URL(businessCalendarPath));
     }
