@@ -97,7 +97,7 @@ public class ListLimits extends AbstractWebScript {
                     limitInfo.put("taskKey", taskKey);
                     String limitKey = keyInfo.toString();
                     limitInfo.put("limitKey", limitKey);
-                    limitInfo.put("limit", limits.get(limitKey).toString());
+                    limitInfo.put("limit", limits.get(limitKey));
                     String taskLabelKey = String.format("%s.type.%s.title", modelName, taskKey).replace(":", "_");
                     limitInfo.put("taskLabel", getMessage(taskLabelKey));
 
