@@ -20,6 +20,7 @@ import org.alfresco.service.cmr.action.ActionService;
 import org.alfresco.service.cmr.repository.NodeRef;
 import org.alfresco.service.cmr.repository.NodeService;
 import org.alfresco.service.cmr.security.PersonService;
+import org.alfresco.service.namespace.QName;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -43,6 +44,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentMap;
 
 public class BusinessCalendar extends KeyValueStoreAware implements InitializingBean, ApplicationContextAware, ApplicationListener<ContextRefreshedEvent> {
+
+    public static final QName SERVICE_NAME = QName.createQName(null, "alvexBusinessCalendar");
 
     public static final String LAST_EMAIL_SENT_TO = "LAST_EMAIL_SENT_TO";
     private final Log logger = LogFactory.getLog(BusinessCalendar.class);
